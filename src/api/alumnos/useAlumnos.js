@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchAlumno, fetchAlumnos, fetchAlumnosCurso, fetchAlumnosObservaciones } from "./alumnos";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchAlumno, fetchAlumnos, fetchAlumnosCurso, fetchAlumnosObservaciones, updateAlumno } from "./alumnos";
 
 export const useAlumnos = () => {
     return useQuery({
@@ -33,5 +33,20 @@ export const useAlumnosObservaciones = (id_alumno) => {
         queryFn: () => fetchAlumnosObservaciones(id_alumno),
         enabled: !!id_alumno, // Solo ejecuta si hay un id_curso
         staleTime: 1000 * 60 * 0.5,
+    });
+};
+
+export const useUpdateAlumno = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: updateAlumno,
+        onSuccess: (data, variables) => {
+        // variables es {id_alumno, data}
+        // Invalidar cache para refetch automático
+        queryClient.invalidateQueries(["alumno", variables.id_alumno]);
+        queryClient.invalidateQueries(["alumnos"]);
+        queryClient.invalidateQueries(["alumnos_curso"]); // Si aplica, pasar id_curso para invalidar cache específico
+        },
     });
 };

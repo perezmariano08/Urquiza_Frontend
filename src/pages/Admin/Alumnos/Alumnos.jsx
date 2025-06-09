@@ -3,6 +3,7 @@ import { useAlumnos } from '../../../api/alumnos/useAlumnos';
 import DataTable from '../../../components/DataTable/DataTable';
 import {formatearFecha} from '../../../utils/formatearFecha.js';
 import { AlumnosMain } from './AlumnosStyles.js';
+import InputText from '../../../components/UI/InputText/InputText.jsx';
 
 const Alumnos = () => {
     const [filtro, setFiltro] = useState('');
@@ -41,18 +42,11 @@ const Alumnos = () => {
     
     return (
         <AlumnosMain>
-            <input
+            <InputText
                 type="text"
                 value={filtro}
                 onChange={(e) => setFiltro(e.target.value)}
                 placeholder="Buscar por DNI, nombre o apellido"
-                style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '6px',
-                    width: '100%',
-                    maxWidth: '400px'
-                }}
             />
             <DataTable
                 data={alumnosFiltrados} 

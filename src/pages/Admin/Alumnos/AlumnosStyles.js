@@ -5,6 +5,11 @@ export const AlumnosMain = styled.div`
     flex-direction: column;
     width: 100%;
     gap: 20px;
+
+    input {
+        width: 100%;
+        max-width: 550px;
+    }
 `
 
 export const AlumnoMain = styled.div`
@@ -34,6 +39,13 @@ export const AlumnoInformacion = styled.ul`
     li {
         span {
             font-weight: 600;
+        }
+
+        a {
+            color: var(--teal-500);
+            &:hover {
+                text-decoration: underline;
+            }
         }
     }
 `

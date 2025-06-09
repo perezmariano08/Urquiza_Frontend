@@ -91,6 +91,7 @@ export const GlobalStyles = createGlobalStyle`
 
     html {
         scroll-behavior: smooth;
+        height: 100%;
     }
 
     img {
@@ -99,7 +100,8 @@ export const GlobalStyles = createGlobalStyle`
 
     body {
         background-color: var(--white-50);
-        color: var(--black-900);
+        color: var(--teal-900);
+        height: 100%;
     }
 
     * {
@@ -110,4 +112,63 @@ export const GlobalStyles = createGlobalStyle`
         list-style-type: none;
         font-family: 'Rethink Sans', sans-serif;
     }
+
+    /* Autocompletado de los inputs */
+    input:-webkit-autofill {
+        box-shadow: 0 0 0px 1000px var(--teal-100) inset !important; /* Cambia "white" por tu color */
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    /* Dropdown */
+    .p-dropdown-items-wrapper {
+        .p-dropdown-items {
+            .p-dropdown-item {
+                padding: 8px 16px;
+                font-weight: 300;
+                color: var(--teal-900);
+                border: none !important;
+                font-size: 14px;
+
+                &.p-highlight {
+                    background-color: var(--teal-100);
+                    color: var(--teal-900);
+                }
+
+                &:hover {
+                    border: none;
+                }
+            }
+        }
+    }
+
+    /* Toast */
+    .p-toast {
+        @media (max-width: 968px) {
+            top: 80px !important;
+            right: 0;
+            left: 20px;
+        }
+        .p-toast-message {
+            margin-bottom: 14px;
+            
+            .p-toast-message-content {
+                gap: 14px;
+                padding: 14px;
+                
+                .p-toast-detail {
+                    font-weight: 200;
+                    margin-top: 4px;
+                }
+            }
+
+            @media (max-width: 968px) {
+                background-color: var(--white);
+                max-width: 300px;
+                font-size: 14px;
+                right: 0;
+                left: auto;
+            }
+        }
+    }
+
 `

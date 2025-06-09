@@ -35,3 +35,12 @@ export const fetchAlumnosObservaciones = async (id_alumno) => {
         throw new Error("Error al cargar los alumnos del curso");
     }
 };
+
+export const updateAlumno = async ({ id_alumno, data }) => {
+    try {
+        const res = await api.put(`/alumnos/update/${id_alumno}`, data);
+        return res.data;
+    } catch (error) {
+        throw new Error("Error al actualizar el alumno");
+    }
+};

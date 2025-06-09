@@ -8,6 +8,8 @@ export const AsideStyled = styled(motion.aside)`
     width: 350px;
     position: sticky;
     top: 0;
+    overflow: auto;
+    padding-bottom: 50px;
 `
 
 export const AsideHeader = styled.div`
@@ -16,7 +18,6 @@ export const AsideHeader = styled.div`
     align-items: center;
     background-color: var(--teal-800);
     padding: 16px;
-    color: var(--teal-300);
 
     h1 {
         font-weight: 400;
@@ -24,6 +25,11 @@ export const AsideHeader = styled.div`
         span {
             font-weight: 800;
         }
+    }
+
+    svg {
+        color: var(--red-500);
+        cursor: pointer;
     }
 `
 
@@ -64,6 +70,21 @@ export const AsideMenu = styled.ul`
 
         &:hover {
             background-color: var(--teal-800);
+        }
+
+        &.logout {
+            color: var(--red-300);
+            svg {
+                color: var(--red-300);
+            }
+
+            &:hover {
+                background-color: var(--red-300);
+                color: var(--red-900);
+                svg {
+                    color: var(--red-900);
+                }
+            }
         }
     }
 `

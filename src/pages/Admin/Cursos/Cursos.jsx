@@ -3,7 +3,7 @@ import { useCursos } from '../../../api/cursos/useCursos';
 import DataTable from '../../../components/DataTable/DataTable';
 import { CursosMain } from './CursosStyles';
 
-const Cursos = () => {
+const Cursos = ({user}) => {
     const { data: cursos } = useCursos();
     const currentYear = new Date().getFullYear();
 
@@ -21,11 +21,10 @@ const Cursos = () => {
     const columns = [
         { field: 'grado', header: 'Grado' },
         { field: 'ciclo_lectivo', header: 'Ciclo Lectivo' },
-        { field: 'Docente', header: 'Docente' },
+        { field: 'docente', header: 'Docente' },
         { field: 'cantidad_alumnos', header: 'Alumnos/as' }
     ];
 
-    console.log("Cursos:", cursos);
 
     return (
         <CursosMain>

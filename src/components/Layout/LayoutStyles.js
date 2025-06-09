@@ -16,7 +16,8 @@ export const AdminLayoutContentHeader = styled.div`
     display: flex;
     width: 100%;
     height: 40px;
-    background-color: var(--teal-100);
+    gap: 16px;
+    background-color: var(--teal-50);
     padding: 0 16px;
     align-items: center;
 
@@ -47,10 +48,18 @@ export const AdminLayoutContentHeader = styled.div`
     
 `
 
+export const AdminLayoutContentHeaderUser = styled.div`
+    display: flex;
+
+    p {
+        font-weight: 500;
+    }
+`
+
 export const AdminLayoutContentMain = styled.div`
     display: flex;
     width: 100%;
-    background-color: var(--white-50);
+    background-color:rgb(238, 238, 238);
     padding: 20px;
     min-height: calc(100% - 40px);
     overflow: hidden;

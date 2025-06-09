@@ -5,12 +5,11 @@ export const DataTableStyled = styled(DataTable)`
     border-radius: var(--radius);
     width: 100%;
 
-
     thead {
         tr {
             th {
                 padding: var(--padding-sm);
-                background-color: var(--teal-50);
+                background-color: var(--teal-100);
                 color: var(--teal-900);
 
                 &.p-sortable-column {
@@ -39,6 +38,13 @@ export const DataTableStyled = styled(DataTable)`
             td {
                 padding: var(--padding-sm);
                 color: var(--teal-900);
+
+                a {
+                    color: var(--teal-500);
+                    &:hover {
+                        text-decoration: underline
+                    }
+                }
             }
 
             &:hover {
