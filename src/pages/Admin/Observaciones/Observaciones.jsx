@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import DataTable from '../../../components/DataTable/DataTable';
-import { useCrearObservacion, useObservacionesDocente } from '../../../api/observaciones/useObservaciones';
+import { useCrearObservacion, useObservacionesDocente, useObservacionesUsuario } from '../../../api/observaciones/useObservaciones';
 import { NavLink } from 'react-router-dom';
 import { formatearFecha } from '../../../utils/formatearFecha';
 import { Skeleton } from 'primereact/skeleton';
@@ -10,17 +10,23 @@ import InputTextWrapper from '../../../components/UI/InputText/InputTextWrapper'
 import InputText from '../../../components/UI/InputText/InputText';
 import useForm from '../../../hooks/useForm';
 import Dropdown from '../../../components/UI/Dropdown/Dropdown';
-import { useAlumnosCurso } from '../../../api/alumnos/useAlumnos';
+import { useAlumnos, useAlumnosCurso } from '../../../api/alumnos/useAlumnos';
 import { ObservacionesMain } from './ObservacionesStyles';
 import InputTextarea from '../../../components/UI/InputTextarea/InputTextarea';
 import { PiPlus } from "react-icons/pi";
 import { useToast } from '../../../context/ToastContext';
 
 const Observaciones = ({ user }) => {
-    const { data: observaciones, isLoading } = useObservacionesDocente(user?.id_docente);
-    const { data: alumnos } = useAlumnosCurso(user?.id_curso);
+    const { data: observaciones, isLoading } = useObservacionesUsuario(user?.id_usuario);
+    const { data: alumnos } = useAlumnos();
+    const { data: alumnosCurso } = useAlumnosCurso(user?.id_curso);
+    const alumnosDropdown = alumnosCurso?.length > 0 ? alumnosCurso : alumnos;
+
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
     const toast = useToast(); // Usamos el hook para acceder al Toast
+    
+    console.log(alumnosCurso);
+    console.log(alumnos);
     
     // Manejo del form
     const hoy = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
@@ -88,6 +94,7 @@ const Observaciones = ({ user }) => {
                 id_alumno: formState.id_alumno,
                 id_docente: user.id_docente,
                 observacion: formState.observacion,
+                id_usuario: user.id_usuario
             });
 
             toast.current.show({
@@ -128,6 +135,7 @@ const Observaciones = ({ user }) => {
     };
 
 
+
     return (
         <ObservacionesMain>
             {!mostrarFormulario && <Button onClick={() => setMostrarFormulario(true)}><PiPlus />añadir observación</Button>}
@@ -164,7 +172,7 @@ const Observaciones = ({ user }) => {
                             name="id_alumno" // <--- esto es clave
                             value={formState.id_alumno}
                             onChange={handleFormChange} // el value ya es el objeto
-                            options={alumnos}
+                            options={alumnosDropdown}
                             optionLabel="alumno"
                             optionValue="id_alumno"
                             placeholder={'Seleccione alumno'}
@@ -186,7 +194,7 @@ const Observaciones = ({ user }) => {
             )}
             
             <DataTable
-                data={isLoading ? getSkeletonData(rowsPerPage) : observaciones}
+                data={observaciones}
                 columns={isLoading ? skeletonColumns : columns}
                 rows={rowsPerPage}
             />

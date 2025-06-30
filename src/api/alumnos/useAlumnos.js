@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAlumno, fetchAlumnos, fetchAlumnosCurso, fetchAlumnosObservaciones, updateAlumno } from "./alumnos";
+import { useToast } from "../../context/ToastContext";
 
 export const useAlumnos = () => {
     return useQuery({
@@ -38,12 +39,19 @@ export const useAlumnosObservaciones = (id_alumno) => {
 
 export const useUpdateAlumno = () => {
     const queryClient = useQueryClient();
+    const toast = useToast(); // Usamos el hook para acceder al Toast
 
     return useMutation({
         mutationFn: updateAlumno,
         onSuccess: (data, variables) => {
         // variables es {id_alumno, data}
         // Invalidar cache para refetch automático
+        toast.current.show({
+            severity: 'success',
+            summary: "Cambios guardados",
+            detail: "Alumno/a actualizado con exito",
+            life: 3000,
+        });
         queryClient.invalidateQueries(["alumno", variables.id_alumno]);
         queryClient.invalidateQueries(["alumnos"]);
         queryClient.invalidateQueries(["alumnos_curso"]); // Si aplica, pasar id_curso para invalidar cache específico

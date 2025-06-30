@@ -27,6 +27,15 @@ export const fetchObservacionesDocente = async (id_docente) => {
     }
 };
 
+export const fetchObservacionesUsuario = async (id_usuario) => {
+    try {
+        const res = await api.get(`/observaciones/usuarios/${id_usuario}`);
+        return res.data;
+    } catch (error) {
+        throw new Error("Error al cargar las observaciones del usuario");
+    }
+};
+
 export const fetchObservacionesAlumno = async (id_alumno) => {
     try {
         const res = await api.get(`/observaciones/alumnos/${id_alumno}`);

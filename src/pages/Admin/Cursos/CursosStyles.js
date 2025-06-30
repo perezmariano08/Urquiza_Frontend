@@ -5,6 +5,7 @@ export const CursosMain = styled.div`
     flex-direction: column;
     gap: 20px;
     width: 100%;
+    padding: 20px;
 
     h2 {
         margin-top: 16px;

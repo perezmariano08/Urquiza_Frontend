@@ -41,5 +41,9 @@ export const DropdownStyled = styled(Dropdown)`
     &:focus-visible {
         outline: var(--teal-400) auto 1px;
     }
+
+    &.p-disabled {
+        background-color: var(--white-100);
+    }
 `
 

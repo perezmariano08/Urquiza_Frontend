@@ -5,4 +5,5 @@ export const ObservacionesMain = styled.div`
     flex-direction: column;
     gap: 30px;
     width: 100%;
+    padding: 20px;
 `

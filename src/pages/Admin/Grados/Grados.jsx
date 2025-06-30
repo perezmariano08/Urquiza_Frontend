@@ -1,6 +1,7 @@
 import React from 'react'
 import { useGrados } from '../../../api/grados/useGrados';
 import DataTable from '../../../components/DataTable/DataTable';
+import { GradosMain } from './GradosStyles';
 
 const Grados = () => {
     const { data: grados } = useGrados();
@@ -9,10 +10,13 @@ const Grados = () => {
         { field: 'abreviacion', header: 'Abreviación' },
     ];
     return (
-        <DataTable
-            data={grados} 
-            columns={columns} 
-        />
+        <GradosMain>
+            <DataTable
+                data={grados} 
+                columns={columns} 
+            />
+        </GradosMain>
+        
     )
 }
 

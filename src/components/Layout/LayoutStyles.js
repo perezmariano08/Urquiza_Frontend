@@ -58,9 +58,9 @@ export const AdminLayoutContentHeaderUser = styled.div`
 
 export const AdminLayoutContentMain = styled.div`
     display: flex;
+    flex-direction: column;
     width: 100%;
     background-color:rgb(238, 238, 238);
-    padding: 20px;
     min-height: calc(100% - 40px);
     overflow: hidden;
 `

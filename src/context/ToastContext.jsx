@@ -8,7 +8,7 @@ export const ToastProvider = ({ children }) => {
 
     return (
         <ToastContext.Provider value={toast}>
-            <Toast ref={toast}/>
+            <Toast ref={toast} position="top-center"/>
             {children}
         </ToastContext.Provider>
     );

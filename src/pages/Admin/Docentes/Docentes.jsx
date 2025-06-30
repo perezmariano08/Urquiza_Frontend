@@ -1,5 +1,6 @@
 import { useDocentes } from '../../../api/docentes/useDocentes';
 import DataTable from '../../../components/DataTable/DataTable';
+import { DocentesMain } from './DocentesStyles';
 
 const Docentes = ({user}) => {
     const { data: docentes } = useDocentes();
@@ -15,10 +16,15 @@ const Docentes = ({user}) => {
     ];
 
     return (
-        <DataTable
-            data={docentes} 
-            columns={columns} 
-        />
+        <DocentesMain>
+            <DataTable
+                data={docentes} 
+                columns={columns} 
+                rowClickBasePath="/admin/docentes"
+                rowClickIdField="id_docente"
+            />
+        </DocentesMain>
+        
     )
 }
 

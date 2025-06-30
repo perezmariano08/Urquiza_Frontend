@@ -22,7 +22,6 @@ const Alumnos = () => {
     if (isLoading) return <div>Cargando alumnos...</div>;
     if (isError) return <div>Error al cargar alumnos: {error.message}</div>;
 
-
     const columns = [
         { field: 'apellido', header: 'Apellido', sortable:true },
         { field: 'nombre', header: 'Nombre', sortable:true },

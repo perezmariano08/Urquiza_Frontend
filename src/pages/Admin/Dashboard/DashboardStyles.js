@@ -4,6 +4,7 @@ export const DashboardMain = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    padding: 20px;
 ` 
 export const DashboardItemWrapper = styled.div`
     background-color: var(--teal-50);

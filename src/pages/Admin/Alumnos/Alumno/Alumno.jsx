@@ -4,7 +4,7 @@ import { useAlumno, useAlumnosObservaciones, useUpdateAlumno } from '../../../..
 import { useCursosAlumno } from '../../../../api/cursos/useCursos';
 import DataTable from '../../../../components/DataTable/DataTable';
 import { formatearFecha } from '../../../../utils/formatearFecha';
-import { AlumnoInformacion, AlumnoInformacionWrapper, AlumnoMain } from '../AlumnosStyles';
+import { AlumnoHeader, AlumnoHeaderDatos, AlumnoHeaderDatosCurso, AlumnoHeaderDatosItem, AlumnoInformacion, AlumnoInformacionAlerta, AlumnoInformacionAlertaLista, AlumnoInformacionWrapper, AlumnoMain } from '../AlumnosStyles';
 import useForm from '../../../../hooks/useForm';
 import Form from '../../../../components/UI/Form/Form';
 import InputText from '../../../../components/UI/InputText/InputText';
@@ -16,24 +16,30 @@ import { capitalizar } from '../../../../utils/capitalizar';
 import { Skeleton } from 'primereact/skeleton';
 import { useArchivosAlumno } from '../../../../api/archivos/UseArchivos';
 import { URL_UPLOADS } from '../../../../utils/constants';
+import Checkbox from '../../../../components/UI/Checkbox/Checkbox';
+import AlumnoMenu from './AlumnoMenu';
+import { calcularEdad } from '../../../../utils/calcularEdad';
+import { PiChalkboardSimple } from 'react-icons/pi';
+import { LiaUserCheckSolid, LiaUserTimesSolid } from 'react-icons/lia';
 
 const Alumno = ({user}) => {
     const id_alumno = parseInt(useParams().id_alumno);
-    const { data: observaciones } = useAlumnosObservaciones(id_alumno);
+    // const { data: observaciones } = useAlumnosObservaciones(id_alumno);
     const { data: alumno, isLoading: alumnoLoading } = useAlumno(id_alumno);
     const { data: cursos } = useCursosAlumno(id_alumno);
-    const { data: tutores } = useTutoresAlumno(id_alumno);
-    const { data: archivos } = useArchivosAlumno(id_alumno);
-    console.log(archivos);
+    
+    // const { data: tutores } = useTutoresAlumno(id_alumno);
+    // const { data: archivos } = useArchivosAlumno(id_alumno);
     
     const cursoActual = cursos?.find((c) => c.ciclo_lectivo === new Date().getFullYear())
-    const [modoEdicion, setModoEdicion] = useState(false);
+    const modoEdicion = user.id_curso === cursoActual?.id_curso || user.id_rol === 1
 
     // Manejo del form
     const [formState, handleFormChange, resetForm, setFormState] = useForm({ 
         dni: '',
         genero: '',
         fecha_nacimiento: '',
+        nacionalidad: '',
         direccion: null,
         telefono: null,
         apellido: '',
@@ -41,6 +47,8 @@ const Alumno = ({user}) => {
         retira_solo: '',
         errores: ''
     });  
+    const [originalForm, setOriginalForm] = useState(null);
+
 
     const columns = [
         {
@@ -94,25 +102,43 @@ const Alumno = ({user}) => {
 
     useEffect(() => {
         if (alumno) {
-            setFormState({
+            const formData = {
+                // Datos personales
                 dni: alumno.dni || null,
                 apellido: alumno.apellido || null,
                 nombre: alumno.nombre || null,
                 genero: alumno.genero || null,
+                nacionalidad: alumno.nacionalidad || null,
                 fecha_nacimiento: alumno.fecha_nacimiento || null,
+                // Datos de contacto
+                telefono: alumno.telefono || null, 
                 direccion: alumno.direccion || null,
-                telefono: alumno.telefono || null,
-                retira_solo: alumno.retira_solo || null,
-            });
+                // Datos adicioneles
+                obra_social: alumno.obra_social === 1,
+                retira_solo: alumno.retira_solo === 1,
+                cud: alumno.cud === 1,
+                fotocopia_dni: alumno.fotocopia_dni === 1,
+                ficha_medica: alumno.ficha_medica === 1,
+                ficha_medica_vencimiento: alumno.ficha_medica_vencimiento || null,
+            };
+            setFormState(formData);
+            setOriginalForm(formData); // <-- Guardás el original para comparar después
         }
     }, [alumno]);
 
+
+    const hayCambios = () => {
+        if (!originalForm) return false;
+        return Object.keys(originalForm).some(key => formState[key] !== originalForm[key]);
+    };
+
+    // Editar Alumno
     const { mutate: updateAlumno, isLoading, isError, error } = useUpdateAlumno();
     const handleSubmit = () => {
         updateAlumno({ id_alumno, data: formState });
-        setModoEdicion(false)
     };
 
+    
     if (alumnoLoading) {
         return <AlumnoMain>
             <AlumnoInformacionWrapper>
@@ -130,146 +156,187 @@ const Alumno = ({user}) => {
         </AlumnoMain>
     }
     
+    const handleCheckboxChange = (e) => {
+        const { name, checked } = e.target;
+        setFormState(prev => ({
+            ...prev,
+            [name]: checked
+        }));
+    };
+
+
+    const requisitos = {
+        dni: 'DNI',
+        fotocopia_dni: 'Fotocopia DNI',
+        ficha_medica: 'Ficha médica',
+    };
+
+    const faltantes = originalForm
+    ? Object.entries(requisitos)
+        .filter(([key]) => !originalForm[key])
+        .map(([, label]) => label)
+    : [];
+
     return (
+    <>
+        <AlumnoHeader>
+            <h2>{alumno?.nombre} {alumno?.apellido}</h2>
+            <AlumnoHeaderDatos>
+                <AlumnoHeaderDatosCurso 
+                    // to={`/admin/cursos/${alumno?.id_curso}`}
+                >
+                    <PiChalkboardSimple />
+                    Primer grado B
+                </AlumnoHeaderDatosCurso>
+                {
+                    alumno?.retira_solo === 0 ? <AlumnoHeaderDatosItem className='red' title='No se retira solo/a'>
+                        <LiaUserCheckSolid />
+                    </AlumnoHeaderDatosItem>
+                    : <AlumnoHeaderDatosItem className='green' title='Se retira solo/a'>
+                    <LiaUserTimesSolid />
+                </AlumnoHeaderDatosItem>
+                }
+                
+                
+            </AlumnoHeaderDatos>
+        </AlumnoHeader>
+        <AlumnoMenu id_alumno={id_alumno} />
         <AlumnoMain>
             <AlumnoInformacionWrapper>
-                {modoEdicion ? (
-                    <>
-                    <Form
-                        buttons={
-                            <>
-                                <Button type="submit" onClick={handleSubmit}>Guardar</Button>
-                                <Button background='red-500' onClick={() => setModoEdicion(false)}>Cancelar</Button>
-                            </>
-                        } 
+                {faltantes.length > 0 && (
+                    <AlumnoInformacionAlerta>
+                        <p>Se requiere presentar documentación y/o cumplimentar lo siguiente:</p>
+                        <AlumnoInformacionAlertaLista>
+                            {faltantes.map((item, index) => (
+                                <li key={index}>- {item}</li>
+                            ))}
+                        </AlumnoInformacionAlertaLista>
+                    </AlumnoInformacionAlerta>
+                )}
+                <h2>Datos personales</h2>
+                <Form>
+                    <InputTextWrapper label={"DNI"}>
+                        <InputText
+                            name="dni"
+                            value={formState.dni}
+                            onChange={handleFormChange}
+                            disabled={!modoEdicion} />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Apellido"}>
+                        <InputText
+                            name="apellido"
+                            value={formState.apellido}
+                            onChange={handleFormChange}
+                            disabled={!modoEdicion} />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Nombres"}>
+                        <InputText
+                            name="nombre"
+                            value={formState.nombre}
+                            disabled={!modoEdicion}
+                            onChange={handleFormChange} />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Genero:"}>
+                        <Dropdown
+                            name="genero" // <--- esto es clave
+                            value={formState.genero}
+                            onChange={handleFormChange} // el value ya es el objeto
+                            disabled={!modoEdicion}
+                            options={[
+                                { value: 'M', label: "Masculino" },
+                                { value: 'F', label: "Femenino" },
+                            ]}
+                            optionLabel="label"
+                            optionValue="value" />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Nacionalidad"}>
+                        <InputText
+                            name="nacionalidad"
+                            value={formState.nacionalidad}
+                            onChange={handleFormChange}
+                            disabled={!modoEdicion} />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Fecha de nacimiento:"}>
+                        <InputText
+                            type={"date"}
+                            name="fecha_nacimiento"
+                            disabled={!modoEdicion}
+                            value={formState.fecha_nacimiento?.split('T')[0] || ''}
+                            onChange={handleFormChange} />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Edad"}
+                        width={'60px'}
                     >
-                        <InputTextWrapper label={"DNI:"}>
-                            <InputText
-                                name="dni"
-                                value={formState.dni}
-                                onChange={handleFormChange}
-                            />
-                        </InputTextWrapper>
-                        <InputTextWrapper label={"Apellido:"}>
-                            <InputText
-                                name="apellido"
-                                value={formState.apellido}
-                                onChange={handleFormChange}
-                            />
-                        </InputTextWrapper>
-                        <InputTextWrapper label={"Nombre:"}>
-                            <InputText
-                                name="nombre"
-                                value={formState.nombre}
-                                onChange={handleFormChange}
-                            />
-                        </InputTextWrapper>
-                        <InputTextWrapper label={"Fecha de nacimiento:"}>
+                        <InputText
+                            name="edad"
+                            value={calcularEdad(formState.fecha_nacimiento)}
+                            disabled />
+                    </InputTextWrapper>
+                </Form>
+                <h2>Datos de contacto</h2>
+                <Form>
+                    <InputTextWrapper label={"Telefono:"}>
+                        <InputText
+                            name="telefono"
+                            value={formState.telefono}
+                            onChange={handleFormChange}
+                            disabled={!modoEdicion} />
+                    </InputTextWrapper>
+                    <InputTextWrapper label={"Dirección:"}>
+                        <InputText
+                            name="direccion"
+                            value={formState.direccion}
+                            onChange={handleFormChange}
+                            disabled={!modoEdicion} />
+                    </InputTextWrapper>
+                </Form>
+                <h2>Datos adicionales / Documentación</h2>
+                <Form>
+                    <Checkbox label={"Obra Social"}
+                        name="obra_social"
+                        checked={formState.obra_social}
+                        onChange={handleCheckboxChange}
+                        disabled={!modoEdicion} />
+                    <Checkbox label={"Se retira solo"}
+                        name="retira_solo"
+                        checked={formState.retira_solo}
+                        onChange={handleCheckboxChange}
+                        disabled={!modoEdicion} />
+                    <Checkbox label={"CUD"}
+                        name="cud"
+                        checked={formState.cud}
+                        onChange={handleCheckboxChange}
+                        disabled={!modoEdicion} />
+                    <Checkbox label={"Fotocopia DNI"}
+                        name="fotocopia_dni"
+                        checked={formState.fotocopia_dni}
+                        onChange={handleCheckboxChange}
+
+                        disabled={!modoEdicion} />
+                    <Checkbox label={"Ficha medica"}
+                        name="ficha_medica"
+                        checked={formState.ficha_medica}
+                        onChange={handleCheckboxChange}
+
+                        disabled={!modoEdicion} />
+                    {formState.ficha_medica && (
+                        <InputTextWrapper label={"Vto. ficha medica"}>
                             <InputText
                                 type={"date"}
-                                name="fecha_nacimiento"
-                                value={formState.fecha_nacimiento?.split('T')[0] || ''}
+                                name="ficha_medica_vencimiento"
+                                value={formState.ficha_medica_vencimiento?.split('T')[0] || ''}
                                 onChange={handleFormChange}
-                            />
+                                disabled={!modoEdicion} />
                         </InputTextWrapper>
-                        <InputTextWrapper label={"Telefono:"}>
-                            <InputText
-                                name="telefono"
-                                value={formState.telefono}
-                                onChange={handleFormChange}
-                            />
-                        </InputTextWrapper>
-                        <InputTextWrapper label={"Dirección:"}>
-                            <InputText
-                                name="direccion"
-                                value={formState.direccion}
-                                onChange={handleFormChange}
-                            />
-                        </InputTextWrapper>
-                        <InputTextWrapper label={"Genero:"}>
-                            <Dropdown
-                                name="genero" // <--- esto es clave
-                                value={formState.genero}
-                                onChange={handleFormChange} // el value ya es el objeto
-                                options={[
-                                    {value: 'M', label: "Masculino"},
-                                    {value: 'F', label: "Femenino"},
-                                ]}
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Seleccione genero"
-                                // error={formState.errores.genero}
-                            />
-                        </InputTextWrapper>
-                        <InputTextWrapper label={"¿Se retira solo?"}>
-                            <Dropdown
-                                name="retira_solo" // <--- esto es clave
-                                value={formState.retira_solo}
-                                onChange={handleFormChange} // el value ya es el objeto
-                                options={[
-                                    {value: 'S', label: "Si"},
-                                    {value: 'N', label: "No"},
-                                ]}
-                                optionLabel="label"
-                                optionValue="value"
-                            />
-                        </InputTextWrapper>
-                    </Form>
-                    </>
-                    
-                    ) : ( <>
-                        <h1>{alumno?.apellido}, {alumno?.nombre}</h1>
-                        <AlumnoInformacion>
-                            <li><span>Dni</span>: {alumno?.dni}</li>
-                            <li><span>Nacionalidad</span>: {alumno?.nacionalidad}</li>
-                            <li>
-                                <span>Género</span>: {alumno?.genero
-                                    ? alumno.genero === "M"
-                                    ? "Masculino"
-                                    : "Femenino"
-                                    : ""}
-                            </li>
-                            <li><span>Fecha de nacimiento</span>: {formatearFecha(alumno?.fecha_nacimiento)}</li>
-                            <li><span>Dirección</span>: {alumno?.direccion}</li>
-                            <li><span>Telefono</span>: {alumno?.telefono}</li>
-                            <li>
-                                <span>¿Se retira solo?</span>: {alumno?.retira_solo
-                                    ? alumno.retira_solo === "N"
-                                    ? "No"
-                                    : "Si"
-                                    : ""}
-                            </li>                            <li><span>Curso actual</span>: <NavLink to={`/admin/cursos/${cursoActual?.id_curso}`}>{cursoActual?.abreviacion} {cursoActual?.division}</NavLink></li>
-                            {tutores?.map((tutor) => (
-                                <li key={tutor.id_tutor}>
-                                    <span>{capitalizar(tutor.parentesco)}</span>: {tutor.apellido}, {tutor.nombre}
-                                </li>
-                            ))}
+                    )}
 
-                        </AlumnoInformacion>
-                        {(user.id_curso === cursoActual?.id_curso || user.id_rol === 1) && (
-                            <Button onClick={() => setModoEdicion(true)}>Editar alumno/a</Button>
-                        )}
-                    </>)}
-
-                
+                </Form>
+                <Button onClick={() => handleSubmit()} disabled={!hayCambios() || isLoading}>
+                    Guardar cambios
+                </Button>
             </AlumnoInformacionWrapper>
-            {
-                observaciones?.length > 0 && <DataTable
-                    data={observaciones} 
-                    columns={columns} 
-                />
-            }
-            <DataTable
-                data={archivos} 
-                columns={columnsArchivos} 
-            />
-            <DataTable
-                data={cursos} 
-                columns={columnsCursos} 
-            />
-            
         </AlumnoMain>
-        
+    </>
     )
 }
 

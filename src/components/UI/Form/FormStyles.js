@@ -6,9 +6,15 @@ export const FormStyled = styled.form`
     gap: 1rem; /* Separación entre inputs */
     row-gap: 2rem;
     border-radius: 10px;
-
+    align-items: center;
     background-color: ${({ bg }) => `var(--${bg})` || 'transparent'};
     padding: ${({ padding }) => `${padding}px` || '0'};
+
+    &.checkbox {
+        display: flex;
+        gap: 0px;
+        flex-direction: column
+    }
 `;
 
 

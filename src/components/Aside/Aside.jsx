@@ -53,7 +53,7 @@ const Aside = ({ isOpen, user }) => {
                             </AsideMenuTitulo>
                             <AsideMenu>
                                 <li><NavLink to={'/admin/usuarios'}><RiAccountPinCircleLine />Usuarios</NavLink></li>
-                                <li><NavLink to={'/admin/observaciones'}><PiUsers />Observaciones</NavLink></li>
+                                <li><NavLink to={`/admin/observaciones/`}><PiPencilLineFill />Mis observaciones</NavLink></li>
                             </AsideMenu>
                         </>
                     }
@@ -66,7 +66,7 @@ const Aside = ({ isOpen, user }) => {
                             <AsideMenu>
                                 <li><NavLink to={`/admin/cursos/${user?.id_curso}`}><PiChalkboardSimple />Mi aula</NavLink></li>
                                 <li><NavLink to={`/admin/observaciones/`}><PiPencilLineFill />Mis observaciones</NavLink></li>
-                                <li><NavLink to={`/admin/asistencias/`}><PiCheckerboardLight />Control de Asistencia</NavLink></li>
+                                <li><NavLink to={`/admin/docentes/${user?.id_docente}/asistencias`}><PiCheckerboardLight />Control de Asistencia</NavLink></li>
                             </AsideMenu>
                         </>
                     }
