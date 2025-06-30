@@ -45,17 +45,22 @@ const Asistencias = ({ user, id_docente }) => {
     const mesActual = new Date().getMonth() + 1; // para que coincida con el value 1–12
     const anioActual = new Date().getFullYear();
 
-    const datosFiltrados = asistencias?.filter(item => {
-        const fechaItem = new Date(item.fecha);
-        return (
-            fechaItem.getMonth() + 1 === mesActual && 
-            fechaItem.getFullYear() === anioActual
-        );
-    });
-
+    
     const [mesSeleccionado, setMesSeleccionado] = useState(mesActual);
     const [anioSeleccionado] = useState(anioActual); // Si querés que cambie el año, también podés hacerlo.
     const hoy = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD"
+    console.log(mesSeleccionado);
+    
+    const datosFiltrados = asistencias?.filter(item => {
+        // Extraer año, mes y día directamente del string ISO
+        const [fechaStr] = item.fecha.split('T');
+        const [anio, mes] = fechaStr.split('-').map(Number);
+        
+        return (
+            mes === mesSeleccionado && 
+            anio === anioSeleccionado
+        );
+    });
 
     const [formState, handleFormChange, resetForm, setFormState] = useForm({ 
         codigo: 99,
@@ -63,6 +68,8 @@ const Asistencias = ({ user, id_docente }) => {
         id_docente: id_docente,
         errores: ''
     });
+    
+    console.log(datosFiltrados);
     
     
 

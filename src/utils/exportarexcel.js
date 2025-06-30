@@ -10,141 +10,126 @@ export function generarExcelParteOficial(asistencias) {
   // Crear hoja de trabajo
   const ws = XLSX.utils.aoa_to_sheet([]);
 
-  // Configuración de encabezados y celdas combinadas
+  // Agregar encabezados con celdas combinadas
   ws["!merges"] = [
+    // DIA A JUSTIFICAR - combina 2 filas y 6 columnas (A1:F2)
     { s: { r: 0, c: 0 }, e: { r: 1, c: 5 } },
+    // NOV - combina 2 filas y 2 columnas (G1:H2)
     { s: { r: 0, c: 6 }, e: { r: 1, c: 7 } },
+    // COD - combina 2 filas y 2 columnas (I1:J2)
     { s: { r: 0, c: 8 }, e: { r: 1, c: 9 } },
+    // PERIODO - combina 1 fila y 12 columnas (K1:V1)
     { s: { r: 0, c: 10 }, e: { r: 0, c: 21 } },
+    // DESDE - combina 1 fila y 6 columnas (K2:P2)
     { s: { r: 1, c: 10 }, e: { r: 1, c: 15 } },
+    // HASTA - combina 1 fila y 6 columnas (Q2:V2)
     { s: { r: 1, c: 16 }, e: { r: 1, c: 21 } }
   ];
 
+  // Escribir encabezados
   XLSX.utils.sheet_add_aoa(ws, [
     ["DIA A JUSTIFICAR", , , , , , "NOV", , "COD", , "PERIODO", , , , , , , , , , , ],
     [, , , , , , , , , , "DESDE", , , , , , "HASTA", , , , , ]
   ], { origin: "A1" });
 
-  let rowIndex = 2;
+  let rowIndex = 2; // Comenzar en la fila 3 (0-based)
   let i = 0;
 
   while (i < ordenadas.length) {
     const actual = ordenadas[i];
 
     if (actual.codigo === 99 && actual.detalle === "PTE") {
+      // Procesar período de presentes consecutivos (incluyendo fines de semana)
       let desde = new Date(actual.fecha);
       let hasta = new Date(actual.fecha);
       let j = i + 1;
-      let tieneObservacionMismoDia = false;
 
-      // Buscar hasta dónde llega el período PTE
-      while (j < ordenadas.length) {
-        const nextItem = ordenadas[j];
-        const nextDate = new Date(nextItem.fecha);
+      while (j < ordenadas.length && ordenadas[j].codigo === 99 && ordenadas[j].detalle === "PTE") {
+        const nextDate = new Date(ordenadas[j].fecha);
+        const expectedNextDate = new Date(hasta);
+        expectedNextDate.setDate(expectedNextDate.getDate() + 1);
         
-        // Verificar si es PTE consecutivo
-        if (nextItem.codigo === 99 && nextItem.detalle === "PTE") {
-          const expectedDate = new Date(hasta);
-          expectedDate.setDate(expectedDate.getDate() + 1);
-          
-          // Saltar fines de semana
-          while (expectedDate < nextDate) {
-            const dayOfWeek = expectedDate.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) break;
-            expectedDate.setDate(expectedDate.getDate() + 1);
+        // Verificar si la siguiente fecha es la esperada (ignorando fines de semana)
+        while (expectedNextDate < nextDate) {
+          // Si hay un hueco, verificar si es fin de semana
+          const dayOfWeek = expectedNextDate.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // No es domingo (0) ni sábado (6)
+            break; // Hay un día laboral faltante, terminar el período
           }
-
-          if (expectedDate.getTime() === nextDate.getTime()) {
-            hasta = new Date(nextDate);
-            j++;
-          } else {
-            break;
-          }
-        } 
-        // Verificar si hay una observación el mismo día que el último PTE
-        else if (nextDate.getTime() === hasta.getTime()) {
-          tieneObservacionMismoDia = true;
-          j++;
-          break;
-        } else {
-          break;
+          expectedNextDate.setDate(expectedNextDate.getDate() + 1);
         }
+
+        if (expectedNextDate.getTime() !== nextDate.getTime()) {
+          break; // Hay un día laboral faltante, terminar el período
+        }
+
+        hasta = new Date(nextDate);
+        j++;
       }
 
-      // Agregar fila PTE (incluyendo el día con observación en HASTA)
+      // Formatear fechas para DESDE y HASTA
       const desdeStr = formatDateParts(desde);
       const hastaStr = formatDateParts(hasta);
 
+      // Agregar fila para PTE
       XLSX.utils.sheet_add_aoa(ws, [
         [
-          , , , , , , 
-          "PTE", ,
-          ...splitNumber(actual.codigo),
-          ...desdeStr,
-          ...hastaStr
+          , , , , , ,  // DIA A JUSTIFICAR vacío (6 celdas)
+          "PTE", ,     // NOV (celda combinada)
+          ...splitNumber(actual.codigo), // COD (2 celdas)
+          ...desdeStr,  // DESDE (6 celdas)
+          ...hastaStr   // HASTA (6 celdas)
         ]
       ], { origin: XLSX.utils.encode_cell({ r: rowIndex, c: 0 }) });
 
-      rowIndex++;
-
-      // Si había una observación el último día, agregarla ahora
-      if (tieneObservacionMismoDia) {
-        const observacion = ordenadas[j-1];
-        const fechaParts = formatDateParts(new Date(observacion.fecha));
-
-        XLSX.utils.sheet_add_aoa(ws, [
-          [
-            ...fechaParts,
-            observacion.detalle, ,
-            ...splitNumber(observacion.codigo),
-            , , , , , , , , , , , ,
-          ]
-        ], { origin: XLSX.utils.encode_cell({ r: rowIndex, c: 0 }) });
-
-        rowIndex++;
-      }
-
       i = j;
     } else {
-      // Procesar observaciones que no son PTE
+      // Procesar otras observaciones (FJ, etc.)
       const fecha = new Date(actual.fecha);
       const fechaParts = formatDateParts(fecha);
 
+      // Agregar fila para observación
       XLSX.utils.sheet_add_aoa(ws, [
         [
-          ...fechaParts,
-          actual.detalle, ,
-          ...splitNumber(actual.codigo),
-          , , , , , , , , , , , ,
+          ...fechaParts,  // DIA A JUSTIFICAR (6 celdas)
+          actual.detalle, , // NOV (celda combinada)
+          ...splitNumber(actual.codigo), // COD (2 celdas)
+          , , , , , , , , , , , ,  // PERIODO vacío (12 celdas)
         ]
       ], { origin: XLSX.utils.encode_cell({ r: rowIndex, c: 0 }) });
 
       i++;
-      rowIndex++;
     }
+    rowIndex++;
   }
 
   // Ajustar anchos de columnas
   ws["!cols"] = [
-    { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 },
-    { wch: 4 }, { wch: 4 },
-    { wch: 3 }, { wch: 3 },
-    { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 },
-    { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }
+    { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, // DIA A JUSTIFICAR
+    { wch: 4 }, { wch: 4 }, // NOV
+    { wch: 3 }, { wch: 3 }, // COD
+    { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, // DESDE
+    { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }, { wch: 3 }  // HASTA
   ];
 
+  // Crear libro y guardar
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Parte Diario");
   const wbout = XLSX.write(wb, { type: "array", bookType: "xlsx" });
   saveAs(new Blob([wbout], { type: "application/octet-stream" }), "parte_diario_formato_oficial.xlsx");
 }
 
-// Funciones auxiliares
+// Función para formatear fecha en partes (día, mes, año)
 function formatDateParts(date) {
   const str = date.toISOString().slice(0, 10);
-  return [str[8], str[9], str[5], str[6], str[2], str[3]];
+  return [
+    str[8], str[9], // día (2 dígitos)
+    str[5], str[6], // mes (2 dígitos)
+    str[2], str[3]  // año (2 últimos dígitos)
+  ];
 }
 
+// Función para dividir un número en dos dígitos (9 -> ["0", "9"], 99 -> ["9", "9"])
 function splitNumber(num) {
   const str = num.toString().padStart(2, "0");
   return [str[0], str[1]];
